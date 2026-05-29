@@ -9,8 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
-@CrossOrigin(origins = "*")
+@RequestMapping("/api") // Gardez ceci pour les routes publiques
 public class MessageController {
 
     private final IMessageService messageService;
@@ -19,15 +18,15 @@ public class MessageController {
         this.messageService = messageService;
     }
 
-    // --- ACCÈS PUBLIC (FORMULAIRE DE CONTACT) ---
-
+    // --- ACCÈS PUBLIC ---
     @PostMapping("/public/messages")
     public ResponseEntity<MessageDTO> postMessage(@RequestBody MessageDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(messageService.envoyerMessage(dto));
     }
 
     // --- ACCÈS ADMINISTRATION ---
-
+    // Changez ces mappings pour inclure /admin/ directement ici
+    // ou assurez-vous qu'ils sont bien appelés avec /api/admin/messages par le front
     @GetMapping("/admin/messages")
     public ResponseEntity<List<MessageDTO>> getAllMessages() {
         return ResponseEntity.ok(messageService.listerTousLesMessages());

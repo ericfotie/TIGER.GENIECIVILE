@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
-
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,7 +13,7 @@ public class Photo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "url", nullable = false)
     private String url;
 
     private String legende;
@@ -23,10 +22,10 @@ public class Photo {
     private boolean isPrincipale = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "projet_id")
+    @JoinColumn(name = "projet_id", nullable = false)
     private Projet projet;
 
-    // Getters and Setters
+    // Getters and Settersa
 
     public Long getId() {
         return id;

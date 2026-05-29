@@ -3,45 +3,54 @@ package dev.BatimenTIGER.Mapper;
 import dev.BatimenTIGER.Model.*;
 import dev.BatimenTIGER.dto.*;
 import org.springframework.stereotype.Component;
-
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class ProjetMapper {
 
-    // Vers ProjetHomeDTO (Pour la page d'accueil)
     public ProjetHomeDTO toHomeDTO(Projet p) {
         if (p == null) return null;
 
-        String coverUrl = p.getPhotos().stream()
-                .filter(Photo::isPrincipale)
-                .map(Photo::getUrl)
-                .findFirst()
-                .orElse(p.getPhotos().isEmpty() ? null : p.getPhotos().get(0).getUrl());
+        // On mappe la liste complète des photos pour que le front-end ait accès aux ID
+        List<PhotoDTO> photos = Optional.ofNullable(p.getPhotos())
+                .orElse(Collections.emptyList()).stream()
+                .map(ph -> new PhotoDTO(ph.getId(), ph.getUrl(), ph.getLegende(), ph.isPrincipale()))
+                .toList();
+
+        // On mappe la liste complète des plans
+        List<PlanDTO> plans = Optional.ofNullable(p.getPlans())
+                .orElse(Collections.emptyList()).stream()
+                .map(pl -> new PlanDTO(pl.getId(), pl.getNomDocument(), pl.getFichierUrl(), pl.getTypeTechnique(), pl.getIndiceRevision()))
+                .toList();
 
         return new ProjetHomeDTO(
                 p.getId(),
                 p.getTitre(),
+                p.getDescription(),
                 p.getLocalisation(),
-                coverUrl,
-                p.getCategorie() != null ? p.getCategorie().getNom() : "Sans catégorie"
+                p.getStatut() != null ? p.getStatut().name() : "ETUDE",
+                p.getCategorie() != null ? p.getCategorie().getNom() : "Sans catégorie",
+                photos,
+                plans
         );
     }
 
-    // Vers ProjetResponseDTO (Détails complets)
     public ProjetResponseDTO toResponseDTO(Projet p) {
         if (p == null) return null;
 
-        List<PhotoDTO> photos = p.getPhotos().stream()
+        List<PhotoDTO> photos = Optional.ofNullable(p.getPhotos())
+                .orElse(Collections.emptyList()).stream()
                 .map(ph -> new PhotoDTO(ph.getId(), ph.getUrl(), ph.getLegende(), ph.isPrincipale()))
                 .toList();
 
-        List<PlanDTO> plans = p.getPlans().stream()
+        List<PlanDTO> plans = Optional.ofNullable(p.getPlans())
+                .orElse(Collections.emptyList()).stream()
                 .map(pl -> new PlanDTO(pl.getId(), pl.getNomDocument(), pl.getFichierUrl(), pl.getTypeTechnique(), pl.getIndiceRevision()))
                 .toList();
 
         return new ProjetResponseDTO(
-                p.getId(),
                 p.getTitre(),
                 p.getDescription(),
                 p.getLocalisation(),
@@ -52,30 +61,30 @@ public class ProjetMapper {
         );
     }
 
-    // Création de l'entité de base à partir du RequestDTO
+    // Les méthodes toEntity et update... restent inchangées
     public Projet toEntity(ProjetRequestDTO request, Categorie categorie) {
         if (request == null) return null;
-
         Projet projet = new Projet();
-        projet.setTitre(request.titre());
-        projet.setDescription(request.description());
-        projet.setLocalisation(request.localisation());
-        projet.setBudgetEstime(request.budgetEstime());
-        projet.setStatut(StatutProjet.valueOf(request.statut()));
-        projet.setCategorie(categorie);
-
+        updateEntityFields(projet, request, categorie);
         return projet;
     }
 
-    // Méthode de mise à jour (Update)
     public void updateEntityFromDTO(ProjetRequestDTO dto, Projet projet, Categorie nouvelleCategorie) {
-        if (dto == null || projet == null) return;
+        if (dto != null && projet != null) {
+            updateEntityFields(projet, dto, nouvelleCategorie);
+        }
+    }
 
-        projet.setTitre(dto.titre());
-        projet.setDescription(dto.description());
-        projet.setLocalisation(dto.localisation());
-        projet.setBudgetEstime(dto.budgetEstime());
-        projet.setStatut(StatutProjet.valueOf(dto.statut()));
-        projet.setCategorie(nouvelleCategorie);
+    private void updateEntityFields(Projet p, ProjetRequestDTO dto, Categorie cat) {
+        p.setTitre(dto.titre());
+        p.setDescription(dto.description());
+        p.setLocalisation(dto.localisation());
+        p.setBudgetEstime(dto.budgetEstime());
+        p.setCategorie(cat);
+        try {
+            p.setStatut(StatutProjet.valueOf(dto.statut().toUpperCase()));
+        } catch (Exception e) {
+            p.setStatut(StatutProjet.ETUDE);
+        }
     }
 }

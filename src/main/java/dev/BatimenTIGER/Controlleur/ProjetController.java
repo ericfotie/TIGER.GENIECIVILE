@@ -14,7 +14,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/projets")
-@CrossOrigin(origins = "*") // Permet à ton application React de consommer l'API sans blocage CORS
 public class ProjetController {
 
     private final IProjetService projetService;

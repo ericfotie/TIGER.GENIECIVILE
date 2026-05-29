@@ -11,7 +11,6 @@ public class CategorieMapper {
     public CategorieDTO toDTO(Categorie categorie) {
         if (categorie == null) return null;
         return new CategorieDTO(
-                categorie.getId(),
                 categorie.getNom(),
                 categorie.getDescription()
         );
